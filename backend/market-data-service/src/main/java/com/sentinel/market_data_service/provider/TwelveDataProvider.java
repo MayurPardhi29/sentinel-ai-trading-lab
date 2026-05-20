@@ -1,5 +1,6 @@
 package com.sentinel.market_data_service.provider;
 
+import com.sentinel.market_data_service.dto.HistoricalCandleResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -29,5 +30,22 @@ public class TwelveDataProvider implements StockDataProvider {
                 + apiKey;
 
         return restTemplate.getForObject(url, String.class);
+    }
+
+    @Override
+    public HistoricalCandleResponse fetchHistoricalData(String symbol) {
+
+        String url = baseUrl
+                + "/time_series?symbol="
+                + symbol
+                + "&interval=1day"
+                + "&outputsize=30"
+                + "&apikey="
+                + apiKey;
+
+        return restTemplate.getForObject(
+                url,
+                HistoricalCandleResponse.class
+        );
     }
 }
