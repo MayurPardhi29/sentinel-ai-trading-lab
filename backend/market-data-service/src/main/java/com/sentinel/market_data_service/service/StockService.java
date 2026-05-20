@@ -1,18 +1,18 @@
 package com.sentinel.market_data_service.service;
 
-import com.sentinel.market_data_service.client.FinnhubClient;
+import com.sentinel.market_data_service.provider.StockDataProvider;
 import org.springframework.stereotype.Service;
 
 @Service
 public class StockService {
 
-    private final FinnhubClient finnhubClient;
+    private final StockDataProvider stockDataProvider;
 
-    public StockService(FinnhubClient finnhubClient){
-        this.finnhubClient = finnhubClient;
+    public StockService(StockDataProvider stockDataProvider) {
+        this.stockDataProvider = stockDataProvider;
     }
 
-    public String getStockQuote(String symbol){
-        return finnhubClient.fetchStockQuote(symbol);
+    public String getStockQuote(String symbol) {
+        return stockDataProvider.fetchQuote(symbol);
     }
 }

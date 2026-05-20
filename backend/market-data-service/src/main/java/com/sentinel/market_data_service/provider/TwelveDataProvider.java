@@ -1,29 +1,31 @@
-package com.sentinel.market_data_service.client;
+package com.sentinel.market_data_service.provider;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 @Component
-public class FinnhubClient {
+public class TwelveDataProvider implements StockDataProvider {
 
     private final RestTemplate restTemplate;
 
-    @Value("${finnhub.api.key}")
+    @Value("${twelvedata.api.key}")
     private String apiKey;
 
-    @Value("${finnhub.base.url}")
+    @Value("${twelvedata.base.url}")
     private String baseUrl;
 
-    public FinnhubClient(RestTemplate restTemplate){
+    public TwelveDataProvider(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
-    public String fetchStockQuote(String symbol){
+    @Override
+    public String fetchQuote(String symbol) {
+
         String url = baseUrl
-                + "/quote?symbol="
+                + "/price?symbol="
                 + symbol
-                + "&token="
+                + "&apikey="
                 + apiKey;
 
         return restTemplate.getForObject(url, String.class);
