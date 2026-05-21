@@ -3,34 +3,45 @@ package com.sentinel.strategy_engine.controller;
 import com.sentinel.strategy_engine.client.MarketDataClient;
 import com.sentinel.strategy_engine.dto.HistoricalCandleResponse;
 import com.sentinel.strategy_engine.dto.StrategyResult;
-import com.sentinel.strategy_engine.service.FVGService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import com.sentinel.strategy_engine.service.StrategyResolver;
+import com.sentinel.strategy_engine.strategy.TradingStrategy;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping("/api/strategy")
 public class StrategyController {
 
     private final MarketDataClient marketDataClient;
 
-    private final FVGService fvgService;
+    private final StrategyResolver strategyResolver;
 
     public StrategyController(
             MarketDataClient marketDataClient,
-            FVGService fvgService) {
+            StrategyResolver strategyResolver) {
 
-        this.marketDataClient = marketDataClient;
-        this.fvgService = fvgService;
+        this.marketDataClient =
+                marketDataClient;
+
+        this.strategyResolver =
+                strategyResolver;
     }
 
-    @GetMapping("/api/strategy/fvg/{symbol}")
-    public StrategyResult detectFVG(
+    @GetMapping("/{strategy}/{symbol}")
+    public StrategyResult analyze(
+            @PathVariable String strategy,
+
             @PathVariable String symbol) {
 
         HistoricalCandleResponse response =
-                marketDataClient.getHistoricalData(symbol);
+                marketDataClient
+                        .getHistoricalData(symbol);
 
-        return fvgService.detectBullishFVG(
+        TradingStrategy selected =
+
+                strategyResolver
+                        .getStrategy(strategy);
+
+        return selected.analyze(
                 response.getValues()
         );
     }

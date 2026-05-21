@@ -1,16 +1,18 @@
-package com.sentinel.strategy_engine.service;
+package com.sentinel.strategy_engine.strategy;
 
 import com.sentinel.strategy_engine.dto.CandleData;
 import com.sentinel.strategy_engine.dto.StrategyResult;
-import org.springframework.stereotype.Service;
+import com.sentinel.strategy_engine.strategy.TradingStrategy;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Service
-public class FVGService {
+@Component
+public class FVGStrategy implements TradingStrategy {
 
-    public StrategyResult detectBullishFVG(
-            List<CandleData> candles){
+    @Override
+    public StrategyResult analyze(
+            List<CandleData> candles) {
 
         for (int i = 0; i < candles.size() - 2; i++) {
 
@@ -32,7 +34,7 @@ public class FVGService {
                         Math.min(gap * 10, 95);
 
                 return new StrategyResult(
-                        "Bullish FVG",
+                        getStrategyName(),
                         true,
                         confidence
                 );
@@ -40,9 +42,14 @@ public class FVGService {
         }
 
         return new StrategyResult(
-                "Bullish FVG",
+                getStrategyName(),
                 false,
                 0
         );
+    }
+
+    @Override
+    public String getStrategyName() {
+        return "fvg";
     }
 }
