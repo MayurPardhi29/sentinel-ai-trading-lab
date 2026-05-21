@@ -4,6 +4,8 @@ import com.sentinel.strategy_engine.dto.HistoricalCandleResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Collections;
+
 @Component
 public class MarketDataClient {
 
@@ -13,11 +15,36 @@ public class MarketDataClient {
         this.restTemplate = restTemplate;
     }
 
-    public HistoricalCandleResponse getHistoricalData(String symbol){
+    public HistoricalCandleResponse
+    getHistoricalData(
+            String symbol
+    ) {
 
         String url =
-                "http://localhost:8080/api/stocks/history/" + symbol;
 
-        return restTemplate.getForObject(url, HistoricalCandleResponse.class);
+                "http://localhost:8080"
+
+                        +
+
+                        "/api/stocks/history/"
+
+                        +
+
+                        symbol;
+
+        HistoricalCandleResponse response =
+
+                restTemplate
+                        .getForObject(
+                                url,
+                                HistoricalCandleResponse.class
+                        );
+
+        Collections.reverse(
+                response
+                        .getValues()
+        );
+
+        return response;
     }
 }

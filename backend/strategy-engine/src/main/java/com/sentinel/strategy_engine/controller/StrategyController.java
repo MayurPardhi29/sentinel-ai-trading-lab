@@ -1,9 +1,11 @@
 package com.sentinel.strategy_engine.controller;
 
 import com.sentinel.strategy_engine.client.MarketDataClient;
+import com.sentinel.strategy_engine.dto.BacktestResult;
 import com.sentinel.strategy_engine.dto.HistoricalCandleResponse;
 import com.sentinel.strategy_engine.dto.SentinelResult;
 import com.sentinel.strategy_engine.dto.StrategyResult;
+import com.sentinel.strategy_engine.service.BacktestService;
 import com.sentinel.strategy_engine.service.SentinelService;
 import com.sentinel.strategy_engine.service.StrategyResolver;
 import com.sentinel.strategy_engine.strategy.TradingStrategy;
@@ -19,19 +21,21 @@ public class StrategyController {
 
     private final SentinelService sentinelService;
 
+    private final BacktestService backtestService;
+
     public StrategyController(
             MarketDataClient marketDataClient,
             StrategyResolver strategyResolver,
-            SentinelService sentinelService) {
+            SentinelService sentinelService,
+            BacktestService backtestService) {
 
-        this.marketDataClient =
-                marketDataClient;
+        this.marketDataClient = marketDataClient;
 
-        this.strategyResolver =
-                strategyResolver;
+        this.strategyResolver = strategyResolver;
 
-        this.sentinelService =
-                sentinelService;
+        this.sentinelService = sentinelService;
+
+        this.backtestService = backtestService;
     }
 
     @GetMapping("/{strategy}/{symbol}")
@@ -74,5 +78,17 @@ public class StrategyController {
                         fvg,
                         ema
                 );
+    }
+
+    @GetMapping("/backtest/{strategy}/{symbol}")
+    public BacktestResult backtest(@PathVariable String strategy,
+            @PathVariable String symbol) {
+
+        HistoricalCandleResponse response = marketDataClient
+                        .getHistoricalData(symbol);
+
+        return backtestService.runBacktest(
+                        strategyResolver.getStrategy(strategy),
+                        response.getValues());
     }
 }

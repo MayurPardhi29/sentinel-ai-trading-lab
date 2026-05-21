@@ -7,17 +7,20 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class EMAStrategy implements TradingStrategy{
-
+public class EMAStrategy
+        implements TradingStrategy {
 
     @Override
     public StrategyResult analyze(
-            List<CandleData> candles) {
+            List<CandleData> candles
+    ) {
 
-        if (candles.size() < 21) {
+        if (
+                candles.size() < 21
+        ) {
 
             return new StrategyResult(
-                    getStrategyName(),
+                    "ema",
                     false,
                     0
             );
@@ -36,25 +39,20 @@ public class EMAStrategy implements TradingStrategy{
                 );
 
         boolean bullish =
-                ema9 > ema21;
 
-        double diff =
+                ema9 >
+                        ema21;
+
+        double confidence =
+
                 Math.abs(
                         ema9 -
                                 ema21
-                );
+                )
 
-        double avg =
-                (
-                        ema9 +
-                                ema21
-                ) / 2;
+                        *
 
-        double confidence =
-                (
-                        diff /
-                                avg
-                ) * 1000;
+                        5;
 
         confidence =
                 Math.min(
@@ -62,42 +60,86 @@ public class EMAStrategy implements TradingStrategy{
                         95
                 );
 
-        if (!bullish) {
-
-            confidence =
-                    confidence * 0.3;
-        }
-
         return new StrategyResult(
-                getStrategyName(),
+
+                "ema",
+
                 bullish,
-                Math.round(
+
+                bullish
+
+                        ?
+
                         confidence
-                )
+
+                        :
+
+                        0
         );
     }
 
     private double calculateEMA(
+
             List<CandleData> candles,
-            int period){
+
+            int period
+
+    ) {
 
         double multiplier =
-                2.0 / (period + 1);
+
+                2.0 /
+
+                        (
+                                period + 1
+                        );
 
         double ema =
+
                 Double.parseDouble(
-                        candles.get(0)
+
+                        candles
+                                .get(0)
                                 .getClose()
+
                 );
 
-        for(int i = 1; i < candles.size(); i++){
+        for (
+
+                int i = 1;
+
+                i < candles.size();
+
+                i++
+
+        ) {
+
             double close =
+
                     Double.parseDouble(
-                            candles.get(i)
+
+                            candles
+                                    .get(i)
                                     .getClose()
+
                     );
 
-            ema = (close - ema) * multiplier + ema;
+            ema =
+
+                    (
+                            close
+                                    -
+                                    ema
+                    )
+
+                            *
+
+                            multiplier
+
+                            +
+
+                            ema;
+
         }
 
         return ema;
@@ -105,6 +147,15 @@ public class EMAStrategy implements TradingStrategy{
 
     @Override
     public String getStrategyName() {
+
         return "ema";
+
+    }
+
+    @Override
+    public int requiredCandles() {
+
+        return 21;
+
     }
 }

@@ -7,7 +7,12 @@ import java.util.List;
 
 public interface TradingStrategy {
 
-    StrategyResult analyze(List<CandleData> candles);
+    StrategyResult analyze(
+            List<CandleData> candles
+    );
 
     String getStrategyName();
+
+    int requiredCandles();
+
 }
