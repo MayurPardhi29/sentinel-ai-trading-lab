@@ -2,7 +2,9 @@ package com.sentinel.strategy_engine.controller;
 
 import com.sentinel.strategy_engine.client.MarketDataClient;
 import com.sentinel.strategy_engine.dto.HistoricalCandleResponse;
+import com.sentinel.strategy_engine.dto.SentinelResult;
 import com.sentinel.strategy_engine.dto.StrategyResult;
+import com.sentinel.strategy_engine.service.SentinelService;
 import com.sentinel.strategy_engine.service.StrategyResolver;
 import com.sentinel.strategy_engine.strategy.TradingStrategy;
 import org.springframework.web.bind.annotation.*;
@@ -15,15 +17,21 @@ public class StrategyController {
 
     private final StrategyResolver strategyResolver;
 
+    private final SentinelService sentinelService;
+
     public StrategyController(
             MarketDataClient marketDataClient,
-            StrategyResolver strategyResolver) {
+            StrategyResolver strategyResolver,
+            SentinelService sentinelService) {
 
         this.marketDataClient =
                 marketDataClient;
 
         this.strategyResolver =
                 strategyResolver;
+
+        this.sentinelService =
+                sentinelService;
     }
 
     @GetMapping("/{strategy}/{symbol}")
@@ -44,5 +52,27 @@ public class StrategyController {
         return selected.analyze(
                 response.getValues()
         );
+    }
+
+    @GetMapping("/sentinel/{symbol}")
+    public SentinelResult sentinel(@PathVariable String symbol){
+
+        HistoricalCandleResponse response =
+                marketDataClient
+                        .getHistoricalData(symbol);
+
+        StrategyResult fvg = strategyResolver
+                .getStrategy("fvg")
+                .analyze(response.getValues());
+
+        StrategyResult ema = strategyResolver
+                .getStrategy("ema")
+                .analyze(response.getValues());
+
+        return sentinelService
+                .score(
+                        fvg,
+                        ema
+                );
     }
 }

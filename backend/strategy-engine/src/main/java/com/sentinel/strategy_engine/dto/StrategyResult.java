@@ -16,7 +16,7 @@ public class StrategyResult {
 
         this.pattern = pattern;
         this.detected = detected;
-        this.confidence = confidence;
+        this.confidence = Math.round(confidence * 100) / 100.0;
     }
 
     public String getPattern() {
