@@ -1,7 +1,6 @@
 package com.sentinel.strategy_engine.strategy;
 
-import com.sentinel.strategy_engine.dto.CandleData;
-import com.sentinel.strategy_engine.dto.StrategyResult;
+import com.sentinel.strategy_engine.dto.*;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -12,11 +11,23 @@ public class EMAStrategy
 
     @Override
     public StrategyResult analyze(
-            List<CandleData> candles
+
+            List<CandleData> candles,
+
+            StrategyRequest request
+
     ) {
 
+        int fast =
+                request.getFast();
+
+        int slow =
+                request.getSlow();
+
         if (
-                candles.size() < 21
+                candles.size()
+                        <
+                        slow + 2
         ) {
 
             return new StrategyResult(
@@ -26,33 +37,37 @@ public class EMAStrategy
             );
         }
 
-        double ema9 =
+        double currentFast =
+
                 calculateEMA(
                         candles,
-                        9
+                        fast
                 );
 
-        double ema21 =
+        double currentSlow =
+
                 calculateEMA(
                         candles,
-                        21
+                        slow
                 );
 
-        boolean bullish =
+        boolean bullishTrend =
 
-                ema9 >
-                        ema21;
+                currentFast
+                        >
+                        currentSlow;
 
         double confidence =
 
                 Math.abs(
-                        ema9 -
-                                ema21
+                        currentFast
+                                -
+                                currentSlow
                 )
 
                         *
 
-                        5;
+                        10;
 
         confidence =
                 Math.min(
@@ -64,9 +79,9 @@ public class EMAStrategy
 
                 "ema",
 
-                bullish,
+                bullishTrend,
 
-                bullish
+                bullishTrend
 
                         ?
 
@@ -88,7 +103,8 @@ public class EMAStrategy
 
         double multiplier =
 
-                2.0 /
+                2.0
+                        /
 
                         (
                                 period + 1
@@ -97,11 +113,9 @@ public class EMAStrategy
         double ema =
 
                 Double.parseDouble(
-
                         candles
                                 .get(0)
                                 .getClose()
-
                 );
 
         for (
@@ -153,9 +167,9 @@ public class EMAStrategy
     }
 
     @Override
-    public int requiredCandles() {
+    public int requiredCandles(StrategyRequest request) {
 
-        return 21;
+        return request.getSlow();
 
     }
 }

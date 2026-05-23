@@ -1,6 +1,7 @@
 package com.sentinel.strategy_engine.strategy;
 
 import com.sentinel.strategy_engine.dto.CandleData;
+import com.sentinel.strategy_engine.dto.StrategyRequest;
 import com.sentinel.strategy_engine.dto.StrategyResult;
 import org.springframework.stereotype.Component;
 
@@ -12,7 +13,8 @@ public class FVGStrategy
 
     @Override
     public StrategyResult analyze(
-            List<CandleData> candles
+            List<CandleData> candles,
+            StrategyRequest request
     ) {
 
         if (candles.size() < 3) {
@@ -95,7 +97,7 @@ public class FVGStrategy
     }
 
     @Override
-    public int requiredCandles() {
+    public int requiredCandles(StrategyRequest request) {
 
         return 3;
 

@@ -1,10 +1,7 @@
 package com.sentinel.strategy_engine.controller;
 
 import com.sentinel.strategy_engine.client.MarketDataClient;
-import com.sentinel.strategy_engine.dto.BacktestResult;
-import com.sentinel.strategy_engine.dto.HistoricalCandleResponse;
-import com.sentinel.strategy_engine.dto.SentinelResult;
-import com.sentinel.strategy_engine.dto.StrategyResult;
+import com.sentinel.strategy_engine.dto.*;
 import com.sentinel.strategy_engine.service.BacktestService;
 import com.sentinel.strategy_engine.service.SentinelService;
 import com.sentinel.strategy_engine.service.StrategyResolver;
@@ -54,7 +51,9 @@ public class StrategyController {
                         .getStrategy(strategy);
 
         return selected.analyze(
-                response.getValues()
+                response.getValues(),
+                StrategyRequest
+                        .defaults()
         );
     }
 
@@ -67,11 +66,17 @@ public class StrategyController {
 
         StrategyResult fvg = strategyResolver
                 .getStrategy("fvg")
-                .analyze(response.getValues());
+                .analyze(response.getValues(),
+
+                        StrategyRequest
+                                .defaults());
 
         StrategyResult ema = strategyResolver
                 .getStrategy("ema")
-                .analyze(response.getValues());
+                .analyze(response.getValues(),
+
+                        StrategyRequest
+                                .defaults());
 
         return sentinelService
                 .score(
@@ -89,6 +94,49 @@ public class StrategyController {
 
         return backtestService.runBacktest(
                         strategyResolver.getStrategy(strategy),
-                        response.getValues());
+                        response.getValues(),
+
+                StrategyRequest
+                        .defaults());
+    }
+
+    @PostMapping(
+            "/playground/{strategy}/{symbol}"
+    )
+
+    public StrategyResult playground(
+
+            @PathVariable
+            String strategy,
+
+            @PathVariable
+            String symbol,
+
+            @RequestBody
+            StrategyRequest request
+
+    ){
+
+        HistoricalCandleResponse response=
+
+                marketDataClient
+                        .getHistoricalData(
+                                symbol
+                        );
+
+        return strategyResolver
+                .getStrategy(
+                        strategy
+                )
+
+                .analyze(
+
+                        response
+                                .getValues(),
+
+                        request
+
+                );
+
     }
 }

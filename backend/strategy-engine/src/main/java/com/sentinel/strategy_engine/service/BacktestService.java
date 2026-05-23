@@ -13,7 +13,9 @@ public class BacktestService {
 
             TradingStrategy strategy,
 
-            List<CandleData> candles
+            List<CandleData> candles,
+
+            StrategyRequest request
 
     ) {
 
@@ -25,7 +27,7 @@ public class BacktestService {
 
         int lookback =
                 strategy
-                        .requiredCandles();
+                        .requiredCandles(request);
 
         for (
 
@@ -38,11 +40,9 @@ public class BacktestService {
         ) {
 
             List<CandleData> history =
+
                     candles.subList(
-                            Math.max(
-                                    0,
-                                    i-lookback
-                            ),
+                            0,
                             i
                     );
 
@@ -50,7 +50,11 @@ public class BacktestService {
 
                     strategy
                             .analyze(
-                                    history
+
+                                    history,
+
+                                    request
+
                             );
 
             if (
