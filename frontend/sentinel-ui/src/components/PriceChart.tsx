@@ -1,65 +1,156 @@
 import {
-    LineChart,
+
+    ResponsiveContainer,
+    
+    ComposedChart,
+    
+    Bar,
+    
     Line,
+    
     XAxis,
+    
     YAxis,
+    
     Tooltip,
-    ResponsiveContainer
-} from "recharts";
-
-interface Props {
-    data: any[];
-}
-
-export default function PriceChart({
+    
+    CartesianGrid
+    
+    }
+    
+    from "recharts";
+    
+    interface Props {
+    
+    data:any[];
+    
+    }
+    
+    export default function PriceChart({
+    
     data
-}: Props) {
-
-    return (
-
-        <div
-            style={{
-                width: "100%",
-                height: 350
-            }}
-        >
-
-            <ResponsiveContainer>
-
-            <LineChart data={data} >
-
-                <XAxis
-                    dataKey="datetime"
-                />
-
-                <YAxis/>
-
-                <Tooltip/>
-
-                <Line
-                    type="monotone"
-                    dataKey="close"
-                    dot={false}
-                />
-
-                <Line
-                    type="monotone"
-                    dataKey="emaFast"
-                    dot={false}
-                />
-
-                <Line
-                    type="monotone"
-                    dataKey="emaSlow"
-                    dot={false}
-                />
-
-            </LineChart>
-
-            </ResponsiveContainer>
-
-        </div>
-
+    
+    }:Props){
+    
+    return(
+    
+    <div
+    className="chart"
+    >
+    
+    <ResponsiveContainer>
+    
+    <ComposedChart
+    data={data}
+    >
+    
+    <CartesianGrid
+    stroke="#1f2937"
+    />
+    
+    <XAxis
+    
+    dataKey="date"
+    
+    tick={{
+    fill:"#94a3b8"
+    }}
+    
+    />
+    
+    <YAxis
+    
+    domain={
+    ["auto","auto"]
+    }
+    
+    tick={{
+    fill:"#94a3b8"
+    }}
+    
+    />
+    
+    <Tooltip/>
+    
+    <Bar
+    
+    dataKey=
+    "volume"
+    
+    fill=
+    "#334155"
+    
+    yAxisId=
+    "volume"
+    
+    />
+    
+    <Line
+    
+    dataKey=
+    "close"
+    
+    stroke=
+    "#e2e8f0"
+    
+    dot=
+    {false}
+    
+    strokeWidth=
+    {2}
+    
+    />
+    
+    {
+    
+    data[0]
+    ?.emaFast
+    
+    &&
+    
+    <Line
+    
+    dataKey=
+    "emaFast"
+    
+    stroke=
+    "#f59e0b"
+    
+    dot=
+    {false}
+    
+    />
+    
+    }
+    
+    {
+    
+    data[0]
+    ?.emaSlow
+    
+    &&
+    
+    <Line
+    
+    dataKey=
+    "emaSlow"
+    
+    stroke=
+    "#22c55e"
+    
+    dot=
+    {false}
+    
+    />
+    
+    }
+    
+    </ComposedChart>
+    
+    </ResponsiveContainer>
+    
+    </div>
+    
     );
-
-}
+    
+    }

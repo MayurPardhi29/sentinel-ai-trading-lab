@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { strategyApi } from "../services/strategyApi";
-import "./Dashboard.css";
-
-import PriceChart from "../components/PriceChart";
-import { calculateEMA } from "../services/calculateEMA";
 import { explain } from "../services/explain";
+import PriceChart from "../components/PriceChart";
+import "./Dashboard.css";
+import { calculateEMA }
+    from "../services/calculateEMA";
 
 function Dashboard() {
     const [symbol, setSymbol] = useState("AAPL");
@@ -14,11 +14,10 @@ function Dashboard() {
 
     const [result, setResult] = useState<any>();
     const [backtest, setBacktest] = useState<any>();
+    const [chart, setChart] = useState<any[]>([]);
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-
-    const [chart, setChart] = useState<any[]>([]);
 
     useEffect(() => {
         analyze();
@@ -29,94 +28,121 @@ function Dashboard() {
             setLoading(true);
             setError("");
 
-            const strategyResult =
-                await strategyApi.post(
-                    `/api/strategy/playground/${strategy}/${symbol}`,
-                    {
-                        fast,
-                        slow
-                    }
-                );
-
-            const backtestResult =
-                await strategyApi.get(
-                    `/api/strategy/backtest/${strategy}/${symbol}`
-                );
-
-            const candleResult =
-                await strategyApi.get(
-                    `/api/strategy/candles/${symbol}`
-                );
-                
-            setResult(
-                strategyResult.data
+            const strategyResult = await strategyApi.post(
+                `/api/strategy/playground/${strategy}/${symbol}`,
+                { fast, slow }
             );
 
-            setBacktest(
-                backtestResult.data
+            const backtestResult = await strategyApi.get(
+                `/api/strategy/backtest/${strategy}/${symbol}`
             );
 
-            const base =
+            const candleResult = await strategyApi.get(
+                `/api/strategy/candles/${symbol}`
+            );
+
+            setResult(strategyResult.data);
+            setBacktest(backtestResult.data);
+
+            const candles =
 
                 candleResult
                     .data
                     .values
+
                     .map(
+
                         (c: any) => ({
 
-                            datetime:
-                                c.datetime,
+                            date:
+
+                                new Date(
+                                    c.datetime
+                                ).toLocaleDateString(
+
+                                    "en-IN",
+
+                                    {
+                                        day: "numeric",
+                                        month: "short"
+                                    }
+
+                                ),
+
+                            open:
+                                Number(c.open),
+
+                            high:
+                                Number(c.high),
+
+                            low:
+                                Number(c.low),
 
                             close:
-                                Number(
-                                    c.close
-                                )
+                                Number(c.close),
+
+                            volume:
+                                Number(c.volume)
 
                         })
+
                     );
 
-            const emaFast =
+            if (
+                strategy === "ema"
+            ) {
 
-                calculateEMA(
-                    base,
-                    fast
+                const fastEMA =
+
+                    calculateEMA(
+                        candles,
+                        fast
+                    );
+
+                const slowEMA =
+
+                    calculateEMA(
+                        candles,
+                        slow
+                    );
+
+                setChart(
+
+                    candles.map(
+
+                        (
+
+                            c,
+                            i
+
+                        ) => ({
+
+                            ...c,
+
+                            emaFast:
+                                fastEMA[i]?.ema,
+
+                            emaSlow:
+                                slowEMA[i]?.ema
+
+                        })
+
+                    )
+
                 );
 
-            const emaSlow =
+            }
 
-                calculateEMA(
-                    base,
-                    slow
+            else {
+
+                setChart(
+                    candles
                 );
 
-            const merged =
-
-                base.map(
-                    (
-                        item,
-                        i
-                    ) => ({
-
-                        ...item,
-
-                        emaFast:
-                            emaFast[i]
-                                .ema,
-
-                        emaSlow:
-                            emaSlow[i]
-                                .ema
-
-                    })
-                );
-
-            setChart(
-                merged
-            );
+            }
+            ;
         } catch {
-            setError(
-                "Unable to analyze symbol"
-            );
+            setError("Unable to analyze symbol");
         } finally {
             setLoading(false);
         }
@@ -125,179 +151,163 @@ function Dashboard() {
     return (
         <div className="dashboard">
 
-            <div className="card">
+            <header className="header">
 
-                <h1 className="title">
-                    Sentinel Dashboard 📈
-                </h1>
+                <div>
+                    <h1 className="brand">
+                        Sentinel
+                    </h1>
+
+                    <p className="subtitle">
+                        Real-time Strategy Playground
+                    </p>
+                </div>
+
+                <div className="live">
+                    ● LIVE
+                </div>
+
+            </header>
+
+            <div className="card controls">
 
                 <div className="input-group">
-
                     <input
                         value={symbol}
-                        onChange={(e) =>
-                            setSymbol(
-                                e.target.value
-                            )
-                        }
+                        onChange={(e) => setSymbol(e.target.value)}
                     />
 
                     <select
                         value={strategy}
-                        onChange={(e) =>
-                            setStrategy(
-                                e.target.value
-                            )
-                        }
+                        onChange={(e) => setStrategy(e.target.value)}
                     >
-                        <option value="ema">
-                            EMA
-                        </option>
-
-                        <option value="fvg">
-                            FVG
-                        </option>
-
+                        <option value="ema">EMA</option>
+                        <option value="fvg">FVG</option>
                     </select>
-
                 </div>
 
-                {
-                    strategy === "ema" && (
-                <div className="input-group">
+                {strategy === "ema" && (
+                    <div className="input-group">
+                        <input
+                            type="number"
+                            value={fast}
+                            onChange={(e) => setFast(Number(e.target.value))}
+                        />
 
-                    <input
-                        type="number"
-                        value={fast}
-                        onChange={(e) =>
-                            setFast(
-                                Number(
-                                    e.target.value
-                                )
-                            )
-                        }
-                    />
+                        <input
+                            type="number"
+                            value={slow}
+                            onChange={(e) => setSlow(Number(e.target.value))}
+                        />
+                    </div>
+                )}
 
-                    <input
-                        type="number"
-                        value={slow}
-                        onChange={(e) =>
-                            setSlow(
-                                Number(
-                                    e.target.value
-                                )
-                            )
-                        }
-                    />
-
-                </div>
-            )}
                 <button
                     onClick={analyze}
                     disabled={loading}
                 >
-                    {
-                        loading
-                            ? "Analyzing..."
-                            : "Analyze"
-                    }
+                    {loading ? "Analyzing..." : "Analyze"}
                 </button>
 
                 {error && (
-                    <p>
-                        {error}
-                    </p>
+                    <p>{error}</p>
                 )}
 
             </div>
 
             {loading && (
-
                 <div className="card">
-
                     Loading market data...
-
                 </div>
-
             )}
 
             {chart.length > 0 && (
-
                 <div className="card">
-
-                    <h2>
-                        Price
-                    </h2>
-
-                    <PriceChart
-                        data={chart}
-                    />
-
+                    <h2>Price</h2>
+                    <PriceChart data={chart} />
                 </div>
-
             )}
 
             {result && (
+                <div className="card">
 
-                <div className="card result">
+                    <h2>Strategy Result</h2>
 
-                    <h2>
-                        Strategy Result
-                    </h2>
+                    <div className="result">
 
-                    <p className="stat">
-                        Pattern: {result.pattern}
-                    </p>
+                        <div className="stat">
+                            Signal
+                            <br />
 
-                    <p className="stat">
-                        Signal{" "}
-                        {
-                            result.detected
-                                ? "BUY"
-                                : "WAIT"
-                        }
-                    </p>
+                            <strong>
+                                {
+                                    result.detected
+                                        ? "BUY"
+                                        : "WAIT"
+                                }
+                            </strong>
+                        </div>
 
-                    <p className="stat">
-                        Confidence{" "}
-                        {result.confidence}
-                    </p>
+                        <div className="stat">
+                            Confidence
+                            <br />
 
-                    <p className = "stat">
-                        Summary: {
-                            explain(
-                                result.detected,
-                                result.confidence
-                            )
-                        }
-                    </p>
+                            <strong>
+                                {
+                                    Math.round(
+                                        result.confidence
+                                    )
+                                }
+                                %
+                            </strong>
+                        </div>
+
+                        <div className="stat">
+                            Pattern
+                            <br />
+
+                            <strong>
+                                {
+                                    result.pattern
+                                }
+                            </strong>
+                        </div>
+
+                        <div className="stat">
+                            Summary
+                            <br />
+
+                            {
+                                explain(
+                                    result.detected,
+                                    result.confidence
+                                )
+                            }
+                        </div>
+
+                    </div>
 
                 </div>
-
             )}
 
             {backtest && (
-
                 <div className="card">
 
-                    <h2>
-                        Backtest
-                    </h2>
+                    <h2>Backtest</h2>
 
                     <p className="stat">
-                        Trades {backtest.trades}
+                        Trades: {backtest.trades}
                     </p>
 
                     <p className="stat">
-                        Win Rate {backtest.winRate}%
+                        Win Rate: {backtest.winRate}%
                     </p>
 
                     <p className="stat">
-                        Profit Factor {backtest.profitFactor}
+                        Profit Factor: {backtest.profitFactor}
                     </p>
 
                 </div>
-
             )}
 
         </div>
