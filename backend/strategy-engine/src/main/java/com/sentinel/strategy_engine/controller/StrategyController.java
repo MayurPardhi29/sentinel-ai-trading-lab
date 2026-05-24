@@ -2,11 +2,11 @@ package com.sentinel.strategy_engine.controller;
 
 import com.sentinel.strategy_engine.client.MarketDataClient;
 import com.sentinel.strategy_engine.dto.*;
-import com.sentinel.strategy_engine.service.BacktestService;
-import com.sentinel.strategy_engine.service.SentinelService;
-import com.sentinel.strategy_engine.service.StrategyResolver;
+import com.sentinel.strategy_engine.service.*;
 import com.sentinel.strategy_engine.strategy.TradingStrategy;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/strategy")
@@ -20,11 +20,17 @@ public class StrategyController {
 
     private final BacktestService backtestService;
 
+    private final ChartService chartService;
+
+    private final ConsensusService consensusService;
+
     public StrategyController(
             MarketDataClient marketDataClient,
             StrategyResolver strategyResolver,
             SentinelService sentinelService,
-            BacktestService backtestService) {
+            BacktestService backtestService,
+            ChartService chartService,
+            ConsensusService consensusService) {
 
         this.marketDataClient = marketDataClient;
 
@@ -33,6 +39,10 @@ public class StrategyController {
         this.sentinelService = sentinelService;
 
         this.backtestService = backtestService;
+
+        this.chartService = chartService;
+
+        this.consensusService = consensusService;
     }
 
     @GetMapping("/{strategy}/{symbol}")
@@ -157,5 +167,61 @@ public class StrategyController {
                         symbol
                 );
 
+    }
+
+    @PostMapping(
+            "/chart/{symbol}"
+    )
+
+    public List<ChartCandle>
+    chart(
+
+            @PathVariable
+            String symbol,
+
+            @RequestBody
+            StrategyRequest request
+
+    ){
+
+        HistoricalCandleResponse response =
+
+                marketDataClient
+                        .getHistoricalData(
+                                symbol
+                        );
+
+        return chartService.build(
+
+                response
+                        .getValues(),
+
+                request
+
+        );
+
+    }
+
+    @PostMapping("/consensus/{symbol}")
+    public SentinelConsensus consensus(@PathVariable String symbol,
+                                       @RequestBody StrategyRequest request){
+        HistoricalCandleResponse response = marketDataClient
+                .getHistoricalData(symbol);
+
+        StrategyResult ema = strategyResolver
+                .getStrategy("ema")
+                .analyze(response
+                        .getValues(),
+                        request
+                );
+
+        StrategyResult fvg = strategyResolver
+                .getStrategy("fvg")
+                .analyze(response
+                        .getValues(),
+                        request
+                );
+
+        return consensusService.build(ema, fvg);
     }
 }

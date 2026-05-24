@@ -2,8 +2,10 @@ package com.sentinel.strategy_engine.service;
 
 import com.sentinel.strategy_engine.dto.*;
 import com.sentinel.strategy_engine.strategy.TradingStrategy;
+
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -25,9 +27,15 @@ public class BacktestService {
 
         int trades = 0;
 
+        List<TradeHistory> history =
+                new ArrayList<>();
+
         int lookback =
+
                 strategy
-                        .requiredCandles(request);
+                        .requiredCandles(
+                                request
+                        );
 
         for (
 
@@ -39,7 +47,7 @@ public class BacktestService {
 
         ) {
 
-            List<CandleData> history =
+            List<CandleData> candleHistory =
 
                     candles.subList(
                             0,
@@ -51,14 +59,17 @@ public class BacktestService {
                     strategy
                             .analyze(
 
-                                    history,
+                                    candleHistory,
 
                                     request
 
                             );
 
             if (
-                    signal.isDetected()
+
+                    signal
+                            .isDetected()
+
             ) {
 
                 trades++;
@@ -78,24 +89,46 @@ public class BacktestService {
                 double entry =
 
                         Double.parseDouble(
+
                                 current
                                         .getClose()
+
                         );
 
                 double exit =
 
                         Double.parseDouble(
+
                                 next
                                         .getClose()
+
                         );
 
                 if (
+
                         exit
                                 >
+
                                 entry
+
                 ) {
 
                     wins++;
+
+                    history.add(
+
+                            new TradeHistory(
+
+                                    current
+                                            .getDatetime(),
+
+                                    "BUY",
+
+                                    "WIN"
+
+                            )
+
+                    );
 
                 }
 
@@ -103,8 +136,25 @@ public class BacktestService {
 
                     losses++;
 
+                    history.add(
+
+                            new TradeHistory(
+
+                                    current
+                                            .getDatetime(),
+
+                                    "BUY",
+
+                                    "LOSS"
+
+                            )
+
+                    );
+
                 }
+
             }
+
         }
 
         double winRate =
@@ -118,9 +168,12 @@ public class BacktestService {
                         :
 
                         (
+
                                 wins
                                         *
+
                                         100.0
+
                         )
 
                                 /
@@ -138,10 +191,13 @@ public class BacktestService {
                         :
 
                         (
+
                                 double
+
                                 )
 
                                 wins
+
                                 /
 
                                 losses;
@@ -169,8 +225,12 @@ public class BacktestService {
 
                         /
 
-                        100.0
+                        100.0,
+
+                history
 
         );
+
     }
+
 }

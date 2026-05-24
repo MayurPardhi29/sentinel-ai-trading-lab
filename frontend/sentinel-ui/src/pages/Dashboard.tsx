@@ -3,8 +3,6 @@ import { strategyApi } from "../services/strategyApi";
 import { explain } from "../services/explain";
 import PriceChart from "../components/PriceChart";
 import "./Dashboard.css";
-import { calculateEMA }
-    from "../services/calculateEMA";
 
 function Dashboard() {
     const [symbol, setSymbol] = useState("AAPL");
@@ -18,6 +16,8 @@ function Dashboard() {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+    const [consensus, setConsensus] = useState<any>();
 
     useEffect(() => {
         analyze();
@@ -37,18 +37,23 @@ function Dashboard() {
                 `/api/strategy/backtest/${strategy}/${symbol}`
             );
 
-            const candleResult = await strategyApi.get(
-                `/api/strategy/candles/${symbol}`
+            const candleResult = await strategyApi.post(
+                `/api/strategy/chart/${symbol}`,
+                { fast, slow }
+            );
+
+            const consensusResult = await strategyApi.post(
+                `/api/strategy/consensus/${symbol}`,
+                { fast, slow }
             );
 
             setResult(strategyResult.data);
             setBacktest(backtestResult.data);
 
-            const candles =
+            setChart(
 
                 candleResult
                     .data
-                    .values
 
                     .map(
 
@@ -58,89 +63,60 @@ function Dashboard() {
 
                                 new Date(
                                     c.datetime
-                                ).toLocaleDateString(
+                                )
 
-                                    "en-IN",
+                                    .toLocaleDateString(
 
-                                    {
-                                        day: "numeric",
-                                        month: "short"
-                                    }
+                                        "en-IN",
 
-                                ),
+                                        {
+
+                                            day: "numeric",
+
+                                            month: "short"
+
+                                        }
+
+                                    ),
 
                             open:
-                                Number(c.open),
+                                c.open,
 
                             high:
-                                Number(c.high),
+                                c.high,
 
                             low:
-                                Number(c.low),
+                                c.low,
 
                             close:
-                                Number(c.close),
+                                c.close,
 
                             volume:
-                                Number(c.volume)
-
-                        })
-
-                    );
-
-            if (
-                strategy === "ema"
-            ) {
-
-                const fastEMA =
-
-                    calculateEMA(
-                        candles,
-                        fast
-                    );
-
-                const slowEMA =
-
-                    calculateEMA(
-                        candles,
-                        slow
-                    );
-
-                setChart(
-
-                    candles.map(
-
-                        (
-
-                            c,
-                            i
-
-                        ) => ({
-
-                            ...c,
+                                c.volume,
 
                             emaFast:
-                                fastEMA[i]?.ema,
+                                c.emaFast,
 
                             emaSlow:
-                                slowEMA[i]?.ema
+                                c.emaSlow,
 
+                            signal:
+                                c.signal,
+
+                            event:
+                                c.event,
+
+                            signalType:
+                                c.signalType
                         })
 
                     )
 
-                );
+            );
 
-            }
-
-            else {
-
-                setChart(
-                    candles
-                );
-
-            }
-            ;
+            setConsensus(
+                consensusResult.data
+            );
         } catch {
             setError("Unable to analyze symbol");
         } finally {
@@ -291,25 +267,194 @@ function Dashboard() {
             )}
 
             {backtest && (
+
                 <div className="card">
 
                     <h2>Backtest</h2>
 
-                    <p className="stat">
-                        Trades: {backtest.trades}
-                    </p>
+                    <div className="result">
+                        <div className="stat">
+                            Trades
+                            <br />
+                            <strong>
+                                {backtest.trades}
+                            </strong>
+                        </div>
 
-                    <p className="stat">
-                        Win Rate: {backtest.winRate}%
-                    </p>
+                        <div className="stat">
+                            Win Rate
+                            <br />
+                            <strong>
+                                {backtest.winRate}%
+                            </strong>
+                        </div>
 
-                    <p className="stat">
-                        Profit Factor: {backtest.profitFactor}
-                    </p>
+                        <div className="stat">
+                            Wins
+                            <br />
+                            <strong>
+                                {backtest.wins}
+                            </strong>
+                        </div>
+
+                        <div className="stat">
+                            Losses
+                            <br />
+                            <strong>
+                                {backtest.losses}
+                            </strong>
+                        </div>
+
+                        <div className="stat">
+                            Profit Factor
+                            <br />
+                            <strong>
+                                {backtest.profitFactor}
+                            </strong>
+                        </div>
+
+                    </div>
+
+                    {!!backtest.history?.length && (
+
+                        <>
+
+                            <h3
+                                style={{
+                                    marginTop: 24
+                                }}
+                            >
+                                Recent Trades
+                            </h3>
+
+                            <div
+                                style={{
+                                    display: "grid",
+                                    gap: 10
+                                }}
+                            >
+
+                                {
+                                    backtest.history
+                                        .slice(0, 5)
+                                        .map(
+                                            (
+                                                t: any,
+                                                i: number
+                                            ) => (
+
+                                                <div
+                                                    key={i}
+                                                    className="stat"
+                                                >
+
+                                                    <strong>
+                                                        {t.date}
+                                                    </strong>
+
+                                                    <br />
+
+                                                    {t.signal}
+
+                                                    {" • "}
+
+                                                    {
+                                                        t.result === "WIN"
+                                                            ? "🟢 WIN"
+                                                            : "🔴 LOSS"
+                                                    }
+
+                                                </div>
+
+                                            )
+                                        )
+                                }
+
+                            </div>
+
+                        </>
+
+                    )}
 
                 </div>
+
             )}
 
+            {
+
+                consensus
+
+                &&
+
+                (
+
+                    <div
+                        className=
+                        "card"
+                    >
+
+                        <h2>
+
+                            Sentinel Consensus
+
+                        </h2>
+
+                        <p>
+
+                            EMA:
+                            {
+
+                                consensus.ema
+
+                            }
+
+                        </p>
+
+                        <p>
+
+                            FVG:
+                            {
+
+                                consensus.fvg
+
+                            }
+
+                        </p>
+
+                        <p>
+
+                            Agreement:
+                            {
+
+                                consensus.agreement
+
+                            }
+
+                            %
+
+                        </p>
+
+                        <p>
+
+                            Recommendation:
+
+                            <strong>
+
+                                {
+
+                                    consensus.recommendation
+
+                                }
+
+                            </strong>
+
+                        </p>
+
+                    </div>
+
+                )
+
+            }
         </div>
     );
 }

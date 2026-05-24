@@ -1,5 +1,9 @@
 package com.sentinel.strategy_engine.dto;
 
+import com.sentinel.strategy_engine.strategy.TradingStrategy;
+
+import java.util.List;
+
 public class BacktestResult {
 
     private String strategy;
@@ -14,13 +18,16 @@ public class BacktestResult {
 
     private double profitFactor;
 
+    private List<TradeHistory> history;
+
     public BacktestResult(
             String strategy,
             int trades,
             int wins,
             int losses,
             double winRate,
-            double profitFactor) {
+            double profitFactor,
+            List<TradeHistory> history) {
 
         this.strategy =
                 strategy;
@@ -39,6 +46,8 @@ public class BacktestResult {
 
         this.profitFactor =
                 profitFactor;
+
+        this.history = history;
     }
 
     public String getStrategy() {
@@ -63,5 +72,9 @@ public class BacktestResult {
 
     public double getProfitFactor() {
         return profitFactor;
+    }
+
+    public List<TradeHistory> getHistory(){
+        return history;
     }
 }
