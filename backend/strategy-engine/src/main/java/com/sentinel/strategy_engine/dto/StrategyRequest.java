@@ -6,6 +6,8 @@ public class StrategyRequest {
 
     private int slow = 21;
 
+    private String interval = "1day";
+
     public StrategyRequest() {
     }
 
@@ -69,5 +71,9 @@ public class StrategyRequest {
         this.slow =
                 slow;
 
+    }
+
+    public String getInterval(){
+        return interval;
     }
 }

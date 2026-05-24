@@ -17,14 +17,19 @@ public class MarketDataClient {
 
     public HistoricalCandleResponse
     getHistoricalData(
-            String symbol
+            String symbol,
+            String interval
     ) {
 
         String url = "http://localhost:8080"
                         +
                         "/api/stocks/history/"
                         +
-                        symbol;
+                        symbol
+                        +
+                        "?interval="
+                        +
+                        interval;
 
         HistoricalCandleResponse response =
 

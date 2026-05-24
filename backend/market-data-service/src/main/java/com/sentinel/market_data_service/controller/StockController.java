@@ -1,12 +1,13 @@
 package com.sentinel.market_data_service.controller;
 
 import com.sentinel.market_data_service.dto.HistoricalCandleResponse;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import com.sentinel.market_data_service.service.StockService;
 
 @RestController
+@RequestMapping(
+        "/api/stocks"
+)
 public class StockController {
 
     private final StockService stockService;
@@ -15,15 +16,39 @@ public class StockController {
         this.stockService = stockService;
     }
 
-    @GetMapping("/api/stocks/{symbol}")
+    @GetMapping("/{symbol}")
     public String getStock(@PathVariable String symbol){
         return stockService.getStockQuote(symbol);
     }
 
-    @GetMapping("/api/stocks/history/{symbol}")
-    public HistoricalCandleResponse getHistoricalData(
-            @PathVariable String symbol) {
+    @GetMapping(
+            "/history/{symbol}"
+    )
 
-        return stockService.getHistoricalData(symbol);
+    public HistoricalCandleResponse history(
+
+            @PathVariable
+            String symbol,
+
+            @RequestParam(
+
+                    defaultValue=
+                            "1day"
+
+            )
+
+            String interval
+
+    ){
+
+        return stockService
+                .getHistoricalData(
+
+                        symbol,
+
+                        interval
+
+                );
+
     }
 }

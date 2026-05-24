@@ -33,12 +33,13 @@ public class TwelveDataProvider implements StockDataProvider {
     }
 
     @Override
-    public HistoricalCandleResponse fetchHistoricalData(String symbol) {
+    public HistoricalCandleResponse fetchHistoricalData(String symbol, String interval) {
 
         String url = baseUrl
                 + "/time_series?symbol="
                 + symbol
-                + "&interval=1day"
+                + "&interval="
+                + interval
                 + "&outputsize=30"
                 + "&apikey="
                 + apiKey;

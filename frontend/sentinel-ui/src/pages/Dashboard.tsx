@@ -19,9 +19,14 @@ function Dashboard() {
 
     const [consensus, setConsensus] = useState<any>();
 
+    const [timeframe, setTimeframe] = useState("1day");
+
     useEffect(() => {
         analyze();
-    }, []);
+    }, [
+        strategy,
+        timeframe
+    ]);
 
     async function analyze() {
         try {
@@ -30,21 +35,22 @@ function Dashboard() {
 
             const strategyResult = await strategyApi.post(
                 `/api/strategy/playground/${strategy}/${symbol}`,
-                { fast, slow }
+                { fast, slow, interval: timeframe }
             );
 
-            const backtestResult = await strategyApi.get(
-                `/api/strategy/backtest/${strategy}/${symbol}`
+            const backtestResult = await strategyApi.post(
+                `/api/strategy/backtest/${strategy}/${symbol}`,
+                { fast, slow, interval: timeframe}
             );
 
             const candleResult = await strategyApi.post(
                 `/api/strategy/chart/${symbol}`,
-                { fast, slow }
+                { fast, slow, interval: timeframe }
             );
 
             const consensusResult = await strategyApi.post(
                 `/api/strategy/consensus/${symbol}`,
-                { fast, slow }
+                { fast, slow, interval: timeframe }
             );
 
             setResult(strategyResult.data);
@@ -178,6 +184,44 @@ function Dashboard() {
                     </div>
                 )}
 
+                <select
+
+                    value=
+                    {timeframe}
+
+                    onChange=
+
+                    {
+
+                        e =>
+
+                            setTimeframe(
+                                e.target.value
+                            )
+
+                    }
+
+                >
+
+                    <option value="1day">
+
+                        1 Day
+
+                    </option>
+
+                    <option value="1week">
+
+                        1 Week
+
+                    </option>
+
+                    <option value="1month">
+
+                        1 Month
+
+                    </option>
+
+                </select>
                 <button
                     onClick={analyze}
                     disabled={loading}

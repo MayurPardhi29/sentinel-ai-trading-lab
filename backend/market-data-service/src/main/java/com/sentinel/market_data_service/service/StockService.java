@@ -17,8 +17,22 @@ public class StockService {
         return stockDataProvider.fetchQuote(symbol);
     }
 
-    public HistoricalCandleResponse getHistoricalData(String symbol) {
+    public HistoricalCandleResponse getHistoricalData(
 
-        return stockDataProvider.fetchHistoricalData(symbol);
+            String symbol,
+
+            String interval
+
+    ){
+
+        return stockDataProvider
+                .fetchHistoricalData(
+
+                        symbol,
+
+                        interval
+
+                );
+
     }
 }
