@@ -139,4 +139,23 @@ public class StrategyController {
                 );
 
     }
+
+    @GetMapping(
+            "/candles/{symbol}"
+    )
+
+    public HistoricalCandleResponse
+    candles(
+
+            @PathVariable
+            String symbol
+
+    ){
+
+        return marketDataClient
+                .getHistoricalData(
+                        symbol
+                );
+
+    }
 }

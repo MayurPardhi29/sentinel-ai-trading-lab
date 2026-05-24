@@ -1,0 +1,66 @@
+body {
+    margin: 0;
+    background: #0f172a;
+    color: white;
+    font-family: Inter, sans-serif;
+  }
+  
+  .dashboard {
+    max-width: 700px;
+    margin: 40px auto;
+    padding: 24px;
+  }
+  
+  .card {
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  
+  .title {
+    margin-bottom: 24px;
+  }
+  
+  .input-group {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  
+  input,
+  select {
+    flex: 1;
+  
+    padding: 12px;
+  
+    border: none;
+  
+    border-radius: 8px;
+  }
+  
+  button {
+    width: 100%;
+  
+    padding: 12px;
+  
+    border: none;
+  
+    border-radius: 10px;
+  
+    cursor: pointer;
+  
+    background: #2563eb;
+  
+    color: white;
+  
+    font-size: 16px;
+  }
+  
+  .result {
+    margin-top: 20px;
+  }
+  
+  .stat {
+    margin: 10px 0;
+  }

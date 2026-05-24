@@ -1,9 +1,14 @@
-function App() {
-  return (
-    <div>
-      <h1>Sentinel UI</h1>
-    </div>
-  )
+import Dashboard
+from "./pages/Dashboard";
+
+function App(){
+
+return(
+
+<Dashboard/>
+
+);
+
 }
 
-export default App
+export default App;

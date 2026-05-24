@@ -20,16 +20,10 @@ public class MarketDataClient {
             String symbol
     ) {
 
-        String url =
-
-                "http://localhost:8080"
-
+        String url = "http://localhost:8080"
                         +
-
                         "/api/stocks/history/"
-
                         +
-
                         symbol;
 
         HistoricalCandleResponse response =
@@ -40,9 +34,17 @@ public class MarketDataClient {
                                 HistoricalCandleResponse.class
                         );
 
+        if(response == null ||
+                response.getValues() == null ||
+                response.getValues().isEmpty() ){
+            throw new RuntimeException("no historical data found for "
+                    +
+                    symbol
+            );
+        }
+
         Collections.reverse(
-                response
-                        .getValues()
+                response.getValues()
         );
 
         return response;
