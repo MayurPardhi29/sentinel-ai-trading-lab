@@ -1,9 +1,11 @@
 import axios from "axios";
 
-export const strategyApi =
-axios.create({
-
-baseURL:
-"http://localhost:8081"
-
+const api = axios.create({
+  baseURL:
+    import.meta.env.VITE_API_URL ||
+    "http://localhost:8081"
 });
+
+export {
+  api as strategyApi
+};

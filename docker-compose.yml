@@ -24,6 +24,10 @@ services:
 
       - market-data
 
+    environment:
+
+      MARKET_DATA_URL: http://market-data:8080
+
   frontend:
 
     build:

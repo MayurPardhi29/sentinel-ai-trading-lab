@@ -1,6 +1,7 @@
 package com.sentinel.strategy_engine.client;
 
 import com.sentinel.strategy_engine.dto.HistoricalCandleResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -14,6 +15,10 @@ public class MarketDataClient {
     public MarketDataClient(RestTemplate restTemplate){
         this.restTemplate = restTemplate;
     }
+    @Value(
+            "${MARKET_DATA_URL:http://localhost:8080}"
+    )
+    private String baseUrl;
 
     public HistoricalCandleResponse
     getHistoricalData(
@@ -21,8 +26,11 @@ public class MarketDataClient {
             String interval
     ) {
 
+
+
+
         String url =
-                "http://market-data:8080"
+                baseUrl
                         +
                         "/api/stocks/history/"
                         +

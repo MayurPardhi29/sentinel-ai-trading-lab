@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+
+  name: market-data
+
+spec:
+
+  replicas: 1
+
+  selector:
+
+    matchLabels:
+
+      app: market-data
+
+  template:
+
+    metadata:
+
+      labels:
+
+        app: market-data
+
+    spec:
+
+      containers:
+
+        - name: market-data
+
+          image: sentinel-ai-trading-lab-market-data
+
+          imagePullPolicy: Never
+
+          ports:
+
+            - containerPort: 8080
