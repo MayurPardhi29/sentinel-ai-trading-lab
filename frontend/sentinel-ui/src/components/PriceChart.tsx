@@ -26,11 +26,23 @@ interface Props {
 
     data: any[];
 
+    showPrice: boolean;
+
+    showEMA: boolean;
+
+    showVolume: boolean;
+
 }
 
 export default function PriceChart({
 
-    data
+    data,
+
+    showPrice,
+
+    showEMA,
+
+    showVolume
 
 }: Props) {
 
@@ -62,8 +74,14 @@ export default function PriceChart({
 
                     <YAxis
 
+                        yAxisId=
+                        "price"
+
                         domain={
-                            ["auto", "auto"]
+                            [
+                                "auto",
+                                "auto"
+                            ]
                         }
 
                         tick={{
@@ -72,54 +90,84 @@ export default function PriceChart({
 
                     />
 
-                    <Tooltip />
-
-                    <Bar
-
-                        dataKey=
-                        "volume"
-
-                        fill=
-                        "#334155"
+                    <YAxis
 
                         yAxisId=
                         "volume"
 
-                    />
+                        orientation=
+                        "right"
 
-                    <Line
-
-                        dataKey=
-                        "close"
-
-                        stroke=
-                        "#e2e8f0"
-
-                        dot=
-                        {false}
-
-                        strokeWidth=
-                        {2}
+                        hide={
+                            !showVolume
+                        }
 
                     />
+
+<Tooltip
+
+contentStyle={{
+
+background:
+"#0f172a",
+
+border:
+"1px solid #1e293b",
+
+borderRadius:
+16,
+
+color:
+"#f8fafc"
+
+}}
+
+labelStyle={{
+
+color:
+"#94a3b8"
+
+}}
+
+itemStyle={{
+
+color:
+"#f8fafc"
+
+}}
+
+cursor={{
+
+stroke:
+"#334155",
+
+strokeWidth:
+1
+
+}}
+
+/>
 
                     {
 
-                        data[0]
-                            ?.emaFast
+                        showVolume
 
                         &&
 
-                        <Line
+                        <Bar
+
+                            yAxisId=
+                            "volume"
 
                             dataKey=
-                            "emaFast"
+                            "volume"
 
-                            stroke=
-                            "#f59e0b"
+                            fill=
+                            "#334155"
 
-                            dot=
-                            {false}
+                            opacity={
+                                0.25
+                            }
 
                         />
 
@@ -127,22 +175,69 @@ export default function PriceChart({
 
                     {
 
-                        data[0]
-                            ?.emaSlow
+                        showPrice
 
                         &&
 
                         <Line
 
+                            yAxisId=
+                            "price"
+
                             dataKey=
-                            "emaSlow"
+                            "close"
 
-                            stroke=
-                            "#22c55e"
+                            stroke="#e2e8f0"
 
-                            dot=
-                            {false}
+                            dot={false}
 
+                            strokeWidth={2}
+
+                        />
+
+                    }
+
+                    {
+
+                        showEMA
+
+                        &&
+
+                        data[0]?.emaFast
+
+                        &&
+
+                        <Line
+
+                            yAxisId= "price"
+                            dataKey="emaFast"
+
+                            stroke="#f59e0b"
+
+                            dot={false}
+
+                        />
+
+                    }
+
+                    {
+
+                        showEMA
+
+                        &&
+
+                        data[0]?.emaSlow
+
+                        &&
+
+                        <Line
+
+                            yAxisId= "price"
+                            dataKey="emaSlow"
+
+                            stroke="#22c55e"
+
+                            dot={false}
 
                         />
 

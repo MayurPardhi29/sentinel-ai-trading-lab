@@ -21,7 +21,8 @@ public class MarketDataClient {
             String interval
     ) {
 
-        String url = "http://localhost:8080"
+        String url =
+                "http://market-data:8080"
                         +
                         "/api/stocks/history/"
                         +

@@ -21,6 +21,17 @@ function Dashboard() {
 
     const [timeframe, setTimeframe] = useState("1day");
 
+    const [showPrice, setShowPrice] = useState(true);
+    const [showEMA, setShowEMA] = useState(true);
+    const [showVolume, setShowVolume] = useState(false);
+
+    const popular = [
+        "AAPL",
+        "TSLA",
+        "MSFT",
+        "NVDA",
+        "GOOGL"
+    ]
     useEffect(() => {
         analyze();
     }, [
@@ -40,7 +51,7 @@ function Dashboard() {
 
             const backtestResult = await strategyApi.post(
                 `/api/strategy/backtest/${strategy}/${symbol}`,
-                { fast, slow, interval: timeframe}
+                { fast, slow, interval: timeframe }
             );
 
             const candleResult = await strategyApi.post(
@@ -153,10 +164,54 @@ function Dashboard() {
 
             <div className="card controls">
 
+                <div className="symbol-row">
+
+                    {
+                        popular.map(
+                            (s) => (
+
+                                <button
+                                    key={s}
+                                    className={
+                                        symbol === s
+                                            ? "chip active"
+                                            : "chip"
+                                    }
+                                    onClick={() => {
+
+                                        setSymbol(
+                                            s
+                                        );
+
+                                        setTimeout(
+                                            analyze,
+                                            0
+                                        );
+
+                                    }}
+                                >
+                                    {s}
+                                </button>
+
+                            )
+                        )
+                    }
+
+                </div>
+
                 <div className="input-group">
                     <input
                         value={symbol}
-                        onChange={(e) => setSymbol(e.target.value)}
+                        placeholder="Ticker"
+
+                        onChange={(e) =>
+
+                            setSymbol(
+                                e.target.value
+                                    .toUpperCase()
+                            )
+
+                        }
                     />
 
                     <select
@@ -230,23 +285,141 @@ function Dashboard() {
                 </button>
 
                 {error && (
-                    <p>{error}</p>
+                    <div className="empty">
+
+                        📭
+
+                        <p>
+
+                            No data available
+
+                        </p>
+
+                        <small>
+
+                            Try another symbol
+
+                        </small>
+
+                    </div>
                 )}
 
             </div>
 
             {loading && (
                 <div className="card">
-                    Loading market data...
+                    <div className="skeleton" />
+
+                    <div className="skeleton" />
+
+                    <div className="skeleton" />
                 </div>
             )}
 
-            {chart.length > 0 && (
-                <div className="card">
-                    <h2>Price</h2>
-                    <PriceChart data={chart} />
-                </div>
-            )}
+{chart.length > 0 && (
+
+<div className="card">
+
+<h2>
+
+Price
+
+</h2>
+
+<div className="toolbar">
+
+<label>
+
+<input
+type="checkbox"
+
+checked={
+showPrice
+}
+
+onChange={()=>
+
+setShowPrice(
+!showPrice
+)
+
+}
+/>
+
+Price
+
+</label>
+
+<label>
+
+<input
+type="checkbox"
+
+checked={
+showEMA
+}
+
+onChange={()=>
+
+setShowEMA(
+!showEMA
+)
+
+}
+/>
+
+EMA
+
+</label>
+
+<label>
+
+<input
+type="checkbox"
+
+checked={
+showVolume
+}
+
+onChange={()=>
+
+setShowVolume(
+!showVolume
+)
+
+}
+/>
+
+Volume
+
+</label>
+
+</div>
+
+<PriceChart
+
+data={
+chart
+}
+
+showPrice={
+showPrice
+}
+
+showEMA={
+showEMA
+}
+
+showVolume={
+showVolume
+}
+
+/>
+
+</div>
+
+)}
+
 
             {result && (
                 <div className="card">
@@ -256,45 +429,71 @@ function Dashboard() {
                     <div className="result">
 
                         <div className="stat">
+
                             Signal
+
                             <br />
 
-                            <strong>
+                            <strong
+
+                                className={
+                                    result.detected
+                                        ? "buy"
+                                        : "wait"
+                                }
+
+                            >
+
                                 {
                                     result.detected
-                                        ? "BUY"
-                                        : "WAIT"
+                                        ? "🟢 BUY"
+                                        : "🟡 WAIT"
                                 }
+
                             </strong>
+
                         </div>
 
                         <div className="stat">
+
                             Confidence
+
                             <br />
 
                             <strong>
+
                                 {
                                     Math.round(
                                         result.confidence
                                     )
                                 }
+
                                 %
+
                             </strong>
+
                         </div>
 
                         <div className="stat">
+
                             Pattern
+
                             <br />
 
                             <strong>
+
                                 {
                                     result.pattern
                                 }
+
                             </strong>
+
                         </div>
 
                         <div className="stat">
+
                             Summary
+
                             <br />
 
                             {
@@ -303,6 +502,7 @@ function Dashboard() {
                                     result.confidence
                                 )
                             }
+
                         </div>
 
                     </div>
@@ -443,62 +643,92 @@ function Dashboard() {
 
                         </h2>
 
-                        <p>
+                        <div className="result">
 
-                            EMA:
-                            {
+                            <div className="stat">
 
-                                consensus.ema
+                                EMA
 
-                            }
+                                <br />
 
-                        </p>
+                                <strong>
 
-                        <p>
+                                    {
+                                        consensus.ema
+                                    }
 
-                            FVG:
-                            {
+                                </strong>
 
-                                consensus.fvg
+                            </div>
 
-                            }
+                            <div className="stat">
 
-                        </p>
+                                FVG
 
-                        <p>
+                                <br />
 
-                            Agreement:
-                            {
+                                <strong>
 
-                                consensus.agreement
+                                    {
+                                        consensus.fvg
+                                    }
 
-                            }
+                                </strong>
 
-                            %
+                            </div>
 
-                        </p>
+                            <div className="stat">
 
-                        <p>
+                                Agreement
 
-                            Recommendation:
+                                <br />
 
-                            <strong>
+                                <strong>
 
-                                {
+                                    {
+                                        consensus.agreement
+                                    }
 
-                                    consensus.recommendation
+                                    %
 
-                                }
+                                </strong>
 
-                            </strong>
+                            </div>
 
-                        </p>
+                            <div className="stat">
+
+                                Recommendation
+
+                                <br />
+
+                                <strong>
+
+                                    {
+                                        consensus.recommendation
+                                    }
+
+                                </strong>
+
+                            </div>
+
+                        </div>
 
                     </div>
 
                 )
 
             }
+            <footer
+                className="footer"
+            >
+
+                Sentinel V1
+
+                <br />
+
+                Strategy Intelligence Dashboard
+
+            </footer>
         </div>
     );
 }

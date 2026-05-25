@@ -1,0 +1,39 @@
+services:
+
+  market-data:
+
+    build:
+
+      context: ./backend/market-data-service
+
+    ports:
+
+      - "8080:8080"
+
+  strategy-engine:
+
+    build:
+
+      context: ./backend/strategy-engine
+
+    ports:
+
+      - "8081:8081"
+
+    depends_on:
+
+      - market-data
+
+  frontend:
+
+    build:
+
+      context: ./frontend/sentinel-ui
+
+    ports:
+
+      - "5173:5173"
+
+    depends_on:
+
+      - strategy-engine
