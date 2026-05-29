@@ -16,6 +16,8 @@ dist/
 
 # Env
 .env
+.env.production
+.env.example
 
 # OS
 .DS_Store
