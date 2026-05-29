@@ -10,6 +10,9 @@ services:
 
       - "8080:8080"
 
+    environment:
+      TWELVEDATA_API_KEY: ${TWELVEDATA_API_KEY}
+
   strategy-engine:
 
     build:

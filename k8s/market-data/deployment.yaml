@@ -27,12 +27,17 @@ spec:
     spec:
 
       containers:
-
         - name: market-data
-
           image: sentinel-ai-trading-lab-market-data
-
           imagePullPolicy: Never
+          
+          env:
+            - name: TWELVEDATA_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: twelvedata-secret
+                  key: api-key
+
 
           ports:
 
