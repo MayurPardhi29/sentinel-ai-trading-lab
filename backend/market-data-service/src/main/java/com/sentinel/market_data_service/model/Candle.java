@@ -1,4 +1,4 @@
-package com.sentinel.market_data_service.model;
+package com.sentinel.marketdata.model;
 
 import java.time.LocalDateTime;
 

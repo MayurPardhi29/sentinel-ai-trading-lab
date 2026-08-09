@@ -11,200 +11,226 @@ import java.util.List;
 @Service
 public class BacktestService {
 
-    public BacktestResult runBacktest(TradingStrategy strategy, List<CandleData> candles, StrategyRequest request) {
+    public BacktestResult runBacktest(
 
-        int lookback = strategy.requiredCandles(request);
-        double stopLossPct = request.getStopLossPct() / 100.0;
-        double takeProfitPct = request.getTakeProfitPct() / 100.0;
-        int maxHoldingPeriod = request.getMaxHoldingPeriod();
-        double initialCapital = request.getInitialCapital();
+            TradingStrategy strategy,
 
-        double capital = initialCapital;
-        double peakEquity = capital;
-        double maxDrawdownPct = 0;
+            List<CandleData> candles,
+
+            StrategyRequest request
+
+    ) {
 
         int wins = 0;
+
         int losses = 0;
-        double grossProfit = 0;
-        double grossLoss = 0;
 
-        List<Double> tradeReturns = new ArrayList<>();
-        List<TradeHistory> history = new ArrayList<>();
-        List<EquityPoint> equityCurve = new ArrayList<>();
+        int trades = 0;
 
-        if (candles.isEmpty() || lookback >= candles.size()) {
-            return emptyResult(strategy.getStrategyName(), initialCapital);
-        }
+        List<TradeHistory> history =
+                new ArrayList<>();
 
-        equityCurve.add(new EquityPoint(candles.get(lookback).getDatetime(), round2(capital)));
+        int lookback =
 
-        int i = lookback;
+                strategy
+                        .requiredCandles(
+                                request
+                        );
 
-        while (i < candles.size() - 1) {
+        for (
 
-            List<CandleData> candleHistory = candles.subList(0, i);
-            StrategyResult signal = strategy.analyze(candleHistory, request);
+                int i = lookback;
 
-            if (!signal.isDetected()) {
-                i++;
-                continue;
-            }
+                i < candles.size() - 1;
 
-            CandleData entryCandle = candles.get(i);
-            double entryPrice = parse(entryCandle.getClose());
-            double stopPrice = entryPrice * (1 - stopLossPct);
-            double targetPrice = entryPrice * (1 + takeProfitPct);
+                i++
 
-            double exitPrice = entryPrice;
-            String exitReason = "TIME";
-            String exitDate = entryCandle.getDatetime();
-            int exitIndex = i;
+        ) {
 
-            int endIndex = Math.min(i + maxHoldingPeriod, candles.size() - 1);
+            List<CandleData> candleHistory =
 
-            for (int j = i + 1; j <= endIndex; j++) {
-                CandleData bar = candles.get(j);
-                double high = parse(bar.getHigh());
-                double low = parse(bar.getLow());
+                    candles.subList(
+                            0,
+                            i
+                    );
 
-                boolean hitStop = low <= stopPrice;
-                boolean hitTarget = high >= targetPrice;
+            StrategyResult signal =
 
-                exitDate = bar.getDatetime();
-                exitIndex = j;
+                    strategy
+                            .analyze(
 
-                if (hitStop) {
-                    exitPrice = stopPrice;
-                    exitReason = "STOP_LOSS";
-                    break;
+                                    candleHistory,
+
+                                    request
+
+                            );
+
+            if (
+
+                    signal
+                            .isDetected()
+
+            ) {
+
+                trades++;
+
+                CandleData current =
+
+                        candles.get(
+                                i
+                        );
+
+                CandleData next =
+
+                        candles.get(
+                                i + 1
+                        );
+
+                double entry =
+
+                        Double.parseDouble(
+
+                                current
+                                        .getClose()
+
+                        );
+
+                double exit =
+
+                        Double.parseDouble(
+
+                                next
+                                        .getClose()
+
+                        );
+
+                if (
+
+                        exit
+                                >
+
+                                entry
+
+                ) {
+
+                    wins++;
+
+                    history.add(
+
+                            new TradeHistory(
+
+                                    current
+                                            .getDatetime(),
+
+                                    "BUY",
+
+                                    "WIN"
+
+                            )
+
+                    );
+
                 }
 
-                if (hitTarget) {
-                    exitPrice = targetPrice;
-                    exitReason = "TAKE_PROFIT";
-                    break;
+                else {
+
+                    losses++;
+
+                    history.add(
+
+                            new TradeHistory(
+
+                                    current
+                                            .getDatetime(),
+
+                                    "BUY",
+
+                                    "LOSS"
+
+                            )
+
+                    );
+
                 }
 
-                exitPrice = parse(bar.getClose());
             }
 
-            double tradeReturnPct = (exitPrice - entryPrice) / entryPrice;
-            double pnl = capital * tradeReturnPct;
-            capital += pnl;
-
-            tradeReturns.add(tradeReturnPct);
-
-            if (pnl >= 0) {
-                wins++;
-                grossProfit += pnl;
-            } else {
-                losses++;
-                grossLoss += Math.abs(pnl);
-            }
-
-            peakEquity = Math.max(peakEquity, capital);
-            if (peakEquity > 0) {
-                double drawdown = (peakEquity - capital) / peakEquity * 100.0;
-                maxDrawdownPct = Math.max(maxDrawdownPct, drawdown);
-            }
-
-            equityCurve.add(new EquityPoint(exitDate, round2(capital)));
-
-            history.add(new TradeHistory(
-                    entryCandle.getDatetime(),
-                    exitDate,
-                    "BUY",
-                    pnl >= 0 ? "WIN" : "LOSS",
-                    exitReason,
-                    round2(entryPrice),
-                    round2(exitPrice),
-                    round2(tradeReturnPct * 100)
-            ));
-
-            i = exitIndex + 1; // don't open a new trade while this one is still "live"
         }
 
-        int trades = wins + losses;
-        double winRate = trades == 0 ? 0 : (wins * 100.0) / trades;
+        double winRate =
 
-        double profitFactor;
-        if (grossLoss == 0) {
-            profitFactor = grossProfit > 0 ? 99.99 : 0; // capped, avoids serializing Infinity
-        } else {
-            profitFactor = grossProfit / grossLoss;
-        }
+                trades == 0
 
-        double totalReturnPct = ((capital - initialCapital) / initialCapital) * 100.0;
-        double averageWin = wins == 0 ? 0 : grossProfit / wins;
-        double averageLoss = losses == 0 ? 0 : grossLoss / losses;
-        double winFraction = trades == 0 ? 0 : winRate / 100.0;
-        double expectancy = trades == 0 ? 0 : (winFraction * averageWin) - ((1 - winFraction) * averageLoss);
+                        ?
 
-        double sharpeRatio = calculateSharpeRatio(tradeReturns);
-        double benchmarkReturnPct = calculateBuyAndHoldReturn(candles, lookback);
+                        0
+
+                        :
+
+                        (
+
+                                wins
+                                        *
+
+                                        100.0
+
+                        )
+
+                                /
+
+                                trades;
+
+        double profitFactor =
+
+                losses == 0
+
+                        ?
+
+                        wins
+
+                        :
+
+                        (
+
+                                double
+
+                                )
+
+                                wins
+
+                                /
+
+                                losses;
 
         return new BacktestResult(
-                strategy.getStrategyName(),
+
+                strategy
+                        .getStrategyName(),
+
                 trades,
+
                 wins,
+
                 losses,
-                round2(winRate),
-                round2(profitFactor),
-                round2(totalReturnPct),
-                round2(maxDrawdownPct),
-                round2(sharpeRatio),
-                round2(averageWin),
-                round2(averageLoss),
-                round2(expectancy),
-                round2(benchmarkReturnPct),
-                history,
-                equityCurve
+
+                Math.round(
+                        winRate
+                ),
+
+                Math.round(
+                        profitFactor
+                                *
+                                100
+                )
+
+                        /
+
+                        100.0,
+
+                history
+
         );
+
     }
 
-    private double calculateSharpeRatio(List<Double> tradeReturns) {
-        if (tradeReturns.size() < 2) {
-            return 0;
-        }
-
-        double mean = tradeReturns.stream().mapToDouble(Double::doubleValue).average().orElse(0);
-
-        double variance = tradeReturns.stream()
-                .mapToDouble(r -> Math.pow(r - mean, 2))
-                .sum() / (tradeReturns.size() - 1);
-
-        double stdDev = Math.sqrt(variance);
-
-        if (stdDev == 0) {
-            return 0;
-        }
-        return (mean / stdDev) * Math.sqrt(252);
-    }
-
-    private double calculateBuyAndHoldReturn(List<CandleData> candles, int lookback) {
-        if (candles.size() <= lookback + 1) {
-            return 0;
-        }
-
-        double startPrice = parse(candles.get(lookback).getClose());
-        double endPrice = parse(candles.get(candles.size() - 1).getClose());
-
-        return ((endPrice - startPrice) / startPrice) * 100.0;
-    }
-
-    private BacktestResult emptyResult(String strategyName, double initialCapital) {
-        return new BacktestResult(
-                strategyName, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0,
-                new ArrayList<>(), new ArrayList<>()
-        );
-    }
-
-    private double parse(String value) {
-        return Double.parseDouble(value);
-    }
-
-    private double round2(double value) {
-        return Math.round(value * 100.0) / 100.0;
-    }
 }

@@ -8,9 +8,14 @@ import java.util.List;
 
 public interface TradingStrategy {
 
-    StrategyResult analyze(List<CandleData> candles,StrategyRequest request);
+    StrategyResult analyze(
+            List<CandleData> candles,
+            StrategyRequest request
+    );
 
     String getStrategyName();
 
-    int requiredCandles(StrategyRequest request);
+    int requiredCandles(
+            StrategyRequest request
+    );
 }

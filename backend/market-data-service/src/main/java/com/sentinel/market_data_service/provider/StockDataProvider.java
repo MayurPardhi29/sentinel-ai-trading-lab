@@ -6,5 +6,12 @@ public interface StockDataProvider {
 
     String fetchQuote(String symbol);
 
-    HistoricalCandleResponse fetchHistoricalData(String symbol, String interval, int outputSize);
+    HistoricalCandleResponse
+    fetchHistoricalData(
+
+            String symbol,
+
+            String interval
+
+    );
 }
