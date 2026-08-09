@@ -10,24 +10,17 @@ public class StrategyResolver {
 
     private final List<TradingStrategy> strategies;
 
-    public StrategyResolver(
-            List<TradingStrategy> strategies){
+    public StrategyResolver(List<TradingStrategy> strategies){
         this.strategies = strategies;
     }
 
-    public TradingStrategy getStrategy(
-            String strategyName){
+    public TradingStrategy getStrategy(String strategyName){
         return strategies
                 .stream()
-                .filter(s ->
-                        s.getStrategyName()
-                                .equalsIgnoreCase(strategyName))
+                .filter(s -> s.getStrategyName()
+                                                .equalsIgnoreCase(strategyName))
                 .findFirst()
                 .orElseThrow(() ->
-                        new RuntimeException(
-                                "Startegy Not Found"
-                        ));
+                        new RuntimeException("Startegy Not Found"));
     }
-
-
 }

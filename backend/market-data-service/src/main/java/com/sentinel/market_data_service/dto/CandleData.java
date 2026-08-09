@@ -57,6 +57,4 @@ public class CandleData {
         this.volume = volume;
     }
 
-
-
 }

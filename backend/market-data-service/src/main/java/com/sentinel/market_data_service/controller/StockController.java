@@ -5,9 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import com.sentinel.market_data_service.service.StockService;
 
 @RestController
-@RequestMapping(
-        "/api/stocks"
-)
+@RequestMapping("/api/stocks")
 public class StockController {
 
     private final StockService stockService;
@@ -17,38 +15,16 @@ public class StockController {
     }
 
     @GetMapping("/{symbol}")
-    public String getStock(@PathVariable String symbol){
+    public String getStock(@PathVariable String symbol) {
         return stockService.getStockQuote(symbol);
     }
 
-    @GetMapping(
-            "/history/{symbol}"
-    )
-
+    @GetMapping("/history/{symbol}")
     public HistoricalCandleResponse history(
-
-            @PathVariable
-            String symbol,
-
-            @RequestParam(
-
-                    defaultValue=
-                            "1day"
-
-            )
-
-            String interval
-
-    ){
-
-        return stockService
-                .getHistoricalData(
-
-                        symbol,
-
-                        interval
-
-                );
-
+            @PathVariable String symbol,
+            @RequestParam(defaultValue = "1day") String interval,
+            @RequestParam(required = false, defaultValue = "0") int outputsize
+    ) {
+        return stockService.getHistoricalData(symbol, interval, outputsize);
     }
 }
