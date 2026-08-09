@@ -12,55 +12,33 @@ public class MarketDataClient {
 
     private final RestTemplate restTemplate;
 
-    public MarketDataClient(RestTemplate restTemplate){
+    public MarketDataClient(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
-    @Value(
-            "${MARKET_DATA_URL:http://localhost:8080}"
-    )
+
+    @Value("${MARKET_DATA_URL:http://localhost:8080}")
     private String baseUrl;
 
-    public HistoricalCandleResponse
-    getHistoricalData(
-            String symbol,
-            String interval
-    ) {
+    public HistoricalCandleResponse getHistoricalData(String symbol, String interval, int outputSize) {
 
+        String url = baseUrl
+                + "/api/stocks/history/"
+                + symbol
+                + "?interval=" + interval
+                + "&outputsize=" + outputSize;
 
+        HistoricalCandleResponse response = restTemplate.getForObject(url, HistoricalCandleResponse.class);
 
-
-        String url =
-                baseUrl
-                        +
-                        "/api/stocks/history/"
-                        +
-                        symbol
-                        +
-                        "?interval="
-                        +
-                        interval;
-
-        HistoricalCandleResponse response =
-
-                restTemplate
-                        .getForObject(
-                                url,
-                                HistoricalCandleResponse.class
-                        );
-
-        if(response == null ||
-                response.getValues() == null ||
-                response.getValues().isEmpty() ){
-            throw new RuntimeException("no historical data found for "
-                    +
-                    symbol
-            );
+        if (response == null || response.getValues() == null || response.getValues().isEmpty()) {
+            throw new RuntimeException("no historical data found for " + symbol);
         }
 
-        Collections.reverse(
-                response.getValues()
-        );
+        Collections.reverse(response.getValues());
 
         return response;
+    }
+
+    public HistoricalCandleResponse getHistoricalData(String symbol, String interval) {
+        return getHistoricalData(symbol, interval, 300);
     }
 }

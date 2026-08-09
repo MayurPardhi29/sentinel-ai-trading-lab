@@ -13,16 +13,13 @@ import java.util.List;
 public class StrategyController {
 
     private final MarketDataClient marketDataClient;
-
     private final StrategyResolver strategyResolver;
-
     private final SentinelService sentinelService;
-
     private final BacktestService backtestService;
-
     private final ChartService chartService;
-
     private final ConsensusService consensusService;
+
+    private final InsightService insightService;
 
     public StrategyController(
             MarketDataClient marketDataClient,
@@ -30,206 +27,108 @@ public class StrategyController {
             SentinelService sentinelService,
             BacktestService backtestService,
             ChartService chartService,
-            ConsensusService consensusService) {
+            ConsensusService consensusService,
+            InsightService insightService) {
 
         this.marketDataClient = marketDataClient;
-
         this.strategyResolver = strategyResolver;
-
         this.sentinelService = sentinelService;
-
         this.backtestService = backtestService;
-
         this.chartService = chartService;
-
         this.consensusService = consensusService;
+        this.insightService = insightService;
     }
 
     @GetMapping("/{strategy}/{symbol}")
-    public StrategyResult analyze(
-            @PathVariable String strategy,
+    public StrategyResult analyze(@PathVariable String strategy, @PathVariable String symbol) {
 
-            @PathVariable String symbol) {
+        StrategyRequest defaults = StrategyRequest.defaults();
 
         HistoricalCandleResponse response =
-                marketDataClient
-                        .getHistoricalData(
-                                symbol,
-                                "1day"
-                        );
+                marketDataClient.getHistoricalData(symbol, "1day", defaults.getCandleCount());
 
-        TradingStrategy selected =
+        TradingStrategy selected = strategyResolver.getStrategy(strategy);
 
-                strategyResolver
-                        .getStrategy(strategy);
-
-        return selected.analyze(
-                response.getValues(),
-                StrategyRequest
-                        .defaults()
-        );
+        return selected.analyze(response.getValues(), defaults);
     }
 
     @GetMapping("/sentinel/{symbol}")
-    public SentinelResult sentinel(@PathVariable String symbol){
+    public SentinelResult sentinel(@PathVariable String symbol) {
+
+        StrategyRequest defaults = StrategyRequest.defaults();
 
         HistoricalCandleResponse response =
-                marketDataClient
-                        .getHistoricalData(
-                                symbol,
-                                "1day"
-                        );
+                marketDataClient.getHistoricalData(symbol, "1day", defaults.getCandleCount());
 
-        StrategyResult fvg = strategyResolver
-                .getStrategy("fvg")
-                .analyze(response.getValues(),
+        StrategyResult fvg = strategyResolver.getStrategy("fvg").analyze(response.getValues(), defaults);
+        StrategyResult ema = strategyResolver.getStrategy("ema").analyze(response.getValues(), defaults);
 
-                        StrategyRequest
-                                .defaults());
-
-        StrategyResult ema = strategyResolver
-                .getStrategy("ema")
-                .analyze(response.getValues(),
-
-                        StrategyRequest
-                                .defaults());
-
-        return sentinelService
-                .score(
-                        fvg,
-                        ema
-                );
+        return sentinelService.score(fvg, ema, "1day");
     }
 
     @PostMapping("/backtest/{strategy}/{symbol}")
-    public BacktestResult backtest(@PathVariable String strategy,
-            @PathVariable String symbol,
-            @RequestBody StrategyRequest request) {
+    public BacktestResult backtest(@PathVariable String strategy, @PathVariable String symbol,
+                                   @RequestBody StrategyRequest request) {
 
-        HistoricalCandleResponse response = marketDataClient
-                        .getHistoricalData(
-                                symbol,
-                                request.getInterval()
-                        );
+        HistoricalCandleResponse response =
+                marketDataClient.getHistoricalData(symbol, request.getInterval(), request.getCandleCount());
 
-        return backtestService.runBacktest(
-                        strategyResolver.getStrategy(strategy),
-                        response.getValues(),
-
-                request);
+        return backtestService.runBacktest(strategyResolver.getStrategy(strategy), response.getValues(), request);
     }
 
     @PostMapping("/playground/{strategy}/{symbol}")
-    public StrategyResult playground(
+    public StrategyResult playground(@PathVariable String strategy, @PathVariable String symbol,
+                                     @RequestBody StrategyRequest request) {
 
-            @PathVariable
-            String strategy,
+        HistoricalCandleResponse response =
+                marketDataClient.getHistoricalData(symbol, request.getInterval(), request.getCandleCount());
 
-            @PathVariable
-            String symbol,
-
-            @RequestBody
-            StrategyRequest request
-
-    ){
-
-        HistoricalCandleResponse response=
-
-                marketDataClient
-                        .getHistoricalData(
-                                symbol,
-                                request.getInterval()
-                        );
-
-        return strategyResolver
-                .getStrategy(
-                        strategy
-                )
-
-                .analyze(
-
-                        response
-                                .getValues(),
-
-                        request
-
-                );
-
+        return strategyResolver.getStrategy(strategy).analyze(response.getValues(), request);
     }
 
-    @GetMapping(
-            "/candles/{symbol}"
-    )
+    @GetMapping("/candles/{symbol}")
+    public HistoricalCandleResponse candles(@PathVariable String symbol) {
 
-    public HistoricalCandleResponse
-    candles(
+        StrategyRequest defaults = StrategyRequest.defaults();
 
-            @PathVariable
-            String symbol
-
-    ){
-
-        return marketDataClient
-                .getHistoricalData(
-                        symbol,
-                        "1day"
-                );
-
+        return marketDataClient.getHistoricalData(symbol, "1day", defaults.getCandleCount());
     }
 
     @PostMapping("/chart/{symbol}")
-    public List<ChartCandle> chart(
-
-            @PathVariable
-            String symbol,
-
-            @RequestBody
-            StrategyRequest request
-
-    ){
+    public List<ChartCandle> chart(@PathVariable String symbol, @RequestBody StrategyRequest request) {
 
         HistoricalCandleResponse response =
+                marketDataClient.getHistoricalData(symbol, request.getInterval(), request.getCandleCount());
 
-                marketDataClient
-                        .getHistoricalData(
-                                symbol,
-                                request.getInterval()
-                        );
-
-        return chartService.build(
-
-                response
-                        .getValues(),
-
-                request
-
-        );
-
+        return chartService.build(response.getValues(), request);
     }
 
     @PostMapping("/consensus/{symbol}")
-    public SentinelConsensus consensus(@PathVariable String symbol,
-                                       @RequestBody StrategyRequest request){
-        HistoricalCandleResponse response = marketDataClient
-                .getHistoricalData(
-                        symbol,
-                        request.getInterval()
-                );
+    public SentinelConsensus consensus(@PathVariable String symbol, @RequestBody StrategyRequest request) {
 
-        StrategyResult ema = strategyResolver
-                .getStrategy("ema")
-                .analyze(response
-                        .getValues(),
-                        request
-                );
+        HistoricalCandleResponse response =
+                marketDataClient.getHistoricalData(symbol, request.getInterval(), request.getCandleCount());
 
-        StrategyResult fvg = strategyResolver
-                .getStrategy("fvg")
-                .analyze(response
-                        .getValues(),
-                        request
-                );
+        StrategyResult ema = strategyResolver.getStrategy("ema").analyze(response.getValues(), request);
+        StrategyResult fvg = strategyResolver.getStrategy("fvg").analyze(response.getValues(), request);
 
-        return consensusService.build(ema, fvg);
+        return consensusService.build(ema, fvg, request.getInterval());
+    }
+
+    @PostMapping("/insight/{strategy}/{symbol}")
+    public InsightResponse insight(@PathVariable String strategy, @PathVariable String symbol,
+                                   @RequestBody StrategyRequest request) {
+
+        HistoricalCandleResponse response =
+                marketDataClient.getHistoricalData(symbol, request.getInterval(), request.getCandleCount());
+
+        BacktestResult backtestResult =
+                backtestService.runBacktest(strategyResolver.getStrategy(strategy), response.getValues(), request);
+
+        StrategyResult ema = strategyResolver.getStrategy("ema").analyze(response.getValues(), request);
+        StrategyResult fvg = strategyResolver.getStrategy("fvg").analyze(response.getValues(), request);
+        SentinelConsensus consensus = consensusService.build(ema, fvg, request.getInterval());
+
+        return insightService.generate(symbol, backtestResult, consensus);
     }
 }

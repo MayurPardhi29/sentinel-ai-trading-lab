@@ -16,6 +16,12 @@ public class TwelveDataProvider implements StockDataProvider {
     @Value("${twelvedata.base.url}")
     private String baseUrl;
 
+    // Previously this was hardcoded to 30 in the request URL itself, which left barely
+    // any usable candles once a strategy's EMA lookback was subtracted — not enough
+    // data for a backtest result to mean anything statistically.
+    @Value("${twelvedata.max-outputsize:500}")
+    private int maxOutputSize = 500;
+
     public TwelveDataProvider(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
@@ -33,14 +39,16 @@ public class TwelveDataProvider implements StockDataProvider {
     }
 
     @Override
-    public HistoricalCandleResponse fetchHistoricalData(String symbol, String interval) {
+    public HistoricalCandleResponse fetchHistoricalData(String symbol, String interval, int outputSize) {
+
+        int size = clamp(outputSize);
 
         String url = baseUrl
                 + "/time_series?symbol="
                 + symbol
                 + "&interval="
                 + interval
-                + "&outputsize=30"
+                + "&outputsize=" + size
                 + "&apikey="
                 + apiKey;
 
@@ -48,5 +56,12 @@ public class TwelveDataProvider implements StockDataProvider {
                 url,
                 HistoricalCandleResponse.class
         );
+    }
+
+    private int clamp(int requested) {
+        if (requested <= 0) {
+            return maxOutputSize;
+        }
+        return Math.min(requested, maxOutputSize); //To safeguard the search window
     }
 }
