@@ -1,0 +1,6 @@
+apiVersion: v2
+name: sentinel
+description: Helm chart for Sentinel AI Trading Lab - market-data, strategy-engine, and frontend services
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

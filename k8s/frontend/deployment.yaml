@@ -1,39 +1,25 @@
 apiVersion: apps/v1
-
 kind: Deployment
-
 metadata:
-
   name: frontend
-
 spec:
-
   replicas: 1
-
   selector:
-
     matchLabels:
-
       app: frontend
-
   template:
-
     metadata:
-
       labels:
-
         app: frontend
-
     spec:
-
       containers:
-
         - name: frontend
-
           image: sentinel-ai-trading-lab-frontend
-
           imagePullPolicy: Never
-
           ports:
-
             - containerPort: 5173
+          env:
+            - name: BACKEND_HOST
+              value: "strategy-engine"
+            - name: BACKEND_PORT
+              value: "8081"

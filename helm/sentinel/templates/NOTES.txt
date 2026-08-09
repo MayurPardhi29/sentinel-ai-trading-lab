@@ -1,0 +1,14 @@
+Sentinel AI Trading Lab has been deployed.
+
+Frontend:        http://localhost:{{ .Values.frontend.nodePort }}
+Strategy Engine:  http://localhost:{{ .Values.strategyEngine.nodePort }}/actuator/health
+Market Data:      (internal only, ClusterIP - not exposed via NodePort)
+
+Check pod status:
+  kubectl get pods
+
+Check a service's logs:
+  kubectl logs -l app=strategy-engine -f
+
+If AI Insight is falling back to rule-based summaries, confirm the Groq key was set:
+  kubectl get secret sentinel-secrets -o jsonpath="{.data.groq-api-key}" | base64 -d

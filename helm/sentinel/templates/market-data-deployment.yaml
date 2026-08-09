@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: market-data
+spec:
+  replicas: {{ .Values.marketData.replicas }}
+  selector:
+    matchLabels:
+      app: market-data
+  template:
+    metadata:
+      labels:
+        app: market-data
+    spec:
+      containers:
+        - name: market-data
+          image: {{ .Values.marketData.image }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.marketData.port }}
+          env:
+            - name: TWELVEDATA_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sentinel-secrets
+                  key: twelvedata-api-key
+            - name: TWELVEDATA_DEFAULT_OUTPUTSIZE
+              value: {{ .Values.marketData.defaultOutputSize | quote }}
+            - name: TWELVEDATA_MAX_OUTPUTSIZE
+              value: {{ .Values.marketData.maxOutputSize | quote }}
+            - name: MARKET_DATA_CACHE_TTL_SECONDS
+              value: {{ .Values.marketData.cacheTtlSeconds | quote }}
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.marketData.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.marketData.port }}
+            initialDelaySeconds: 25
+            periodSeconds: 15

@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: strategy-engine
+spec:
+  replicas: {{ .Values.strategyEngine.replicas }}
+  selector:
+    matchLabels:
+      app: strategy-engine
+  template:
+    metadata:
+      labels:
+        app: strategy-engine
+    spec:
+      containers:
+        - name: strategy-engine
+          image: {{ .Values.strategyEngine.image }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.strategyEngine.port }}
+          env:
+            - name: MARKET_DATA_URL
+              value: "http://market-data:{{ .Values.marketData.port }}"
+            - name: GROQ_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sentinel-secrets
+                  key: groq-api-key
+            - name: GROQ_MODEL
+              value: {{ .Values.strategyEngine.groqModel | quote }}
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.strategyEngine.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.strategyEngine.port }}
+            initialDelaySeconds: 25
+            periodSeconds: 15

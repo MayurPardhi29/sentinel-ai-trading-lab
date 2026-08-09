@@ -1,0 +1,36 @@
+# Default values for the sentinel chart.
+# Override any of these with `--set key=value` or a custom values file, e.g.:
+#   helm install sentinel ./helm/sentinel -f my-values.yaml
+#   helm install sentinel ./helm/sentinel --set secrets.twelveDataApiKey=xxx --set secrets.groqApiKey=yyy
+
+imagePullPolicy: Never  # images are built locally into the Kind cluster's node - see README
+
+marketData:
+  image: sentinel-ai-trading-lab-market-data
+  port: 8080
+  replicas: 1
+  defaultOutputSize: "300"
+  maxOutputSize: "500"
+  cacheTtlSeconds: "60"
+
+strategyEngine:
+  image: sentinel-ai-trading-lab-strategy-engine
+  port: 8081
+  nodePort: 30081
+  replicas: 1
+  groqModel: "llama-3.3-70b-versatile"
+
+frontend:
+  image: sentinel-ai-trading-lab-frontend
+  port: 5173
+  nodePort: 30173
+  replicas: 1
+
+# Secrets are intentionally left blank here - never commit real keys to values.yaml.
+# Pass them at install time instead:
+#   helm install sentinel ./helm/sentinel \
+#     --set secrets.twelveDataApiKey=$TWELVEDATA_API_KEY \
+#     --set secrets.groqApiKey=$GROQ_API_KEY
+secrets:
+  twelveDataApiKey: ""
+  groqApiKey: ""

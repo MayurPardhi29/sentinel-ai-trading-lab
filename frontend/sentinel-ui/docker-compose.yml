@@ -1,0 +1,10 @@
+frontend:
+  build:
+    context: ./frontend/sentinel-ui
+  ports:
+    - "5173:5173"
+  environment:
+    BACKEND_HOST: strategy-engine
+    BACKEND_PORT: "8081"
+  depends_on:
+    - strategy-engine

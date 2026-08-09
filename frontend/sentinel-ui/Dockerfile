@@ -1,4 +1,4 @@
-FROM node:22-alpine
+FROM node:22-alpine AS build
 
 WORKDIR /app
 
@@ -10,8 +10,12 @@ COPY . .
 
 RUN npm run build
 
-RUN npm install -g serve
+FROM nginx:1.27-alpine
+
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+
+ENV BACKEND_HOST=strategy-engine
+ENV BACKEND_PORT=8081
 
 EXPOSE 5173
-
-CMD ["serve","-s","dist","-l","5173"]
