@@ -1,1 +1,0 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/components/pricechart.tsx","./src/hooks/usedaterangefilter.ts","./src/hooks/useinsight.ts","./src/hooks/usemarketanalysis.ts","./src/pages/dashboard.tsx","./src/services/explain.ts","./src/services/strategyapi.ts","./src/types/strategyresult.ts","./src/utils/formatters.ts"],"version":"6.0.3"}
